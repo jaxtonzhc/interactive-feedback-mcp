@@ -70,8 +70,13 @@ class EnhancedMarkdownRenderer:
             }
         )
         
-        # 获取Pygments CSS样式
-        self.pygments_css = HtmlFormatter(style='monokai').get_style_defs('.highlight')
+        # 获取 Pygments token 颜色，剥离所有 background 属性避免 QTextBrowser 全行背景
+        raw_pygments = HtmlFormatter(style='monokai').get_style_defs('.highlight')
+        import re as _re
+        cleaned = _re.sub(r'\.highlight\s*\{[^}]*\}', '', raw_pygments)
+        cleaned = _re.sub(r'background:\s*[^;]+;?', '', cleaned)
+        cleaned = _re.sub(r'background-color:\s*[^;]+;?', '', cleaned)
+        self.pygments_css = cleaned
     
     def render(self, text: str) -> str:
         """渲染markdown文本为HTML"""
@@ -200,7 +205,7 @@ class EnhancedMarkdownRenderer:
         return self._get_dark_css()
 
     def _get_light_css(self) -> str:
-        """浅色模式 CSS"""
+        """浅色模式 CSS — QTextBrowser 兼容版"""
         return """
         body {
             font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'SimHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
@@ -210,83 +215,33 @@ class EnhancedMarkdownRenderer:
             margin: 0;
             padding: 16px;
             font-size: 14px;
-            font-variant-emoji: normal;
-            text-rendering: optimizeLegibility;
-            -webkit-font-feature-settings: "liga", "kern";
-            font-feature-settings: "liga", "kern";
         }
 
         h1, h2, h3, h4, h5, h6 {
-            margin-top: 24px;
-            margin-bottom: 16px;
+            margin-top: 20px;
+            margin-bottom: 12px;
             font-weight: 700;
-            position: relative;
-            padding: 12px 20px;
-            border-radius: 8px;
-            border-left: 4px solid #1565C0;
-            background: linear-gradient(135deg, rgba(21, 101, 192, 0.08), rgba(21, 101, 192, 0.03));
-            color: #0d47a1;
-        }
-
-        h1 {
-            font-size: 22px;
-            background: linear-gradient(135deg, rgba(46, 125, 50, 0.10), rgba(46, 125, 50, 0.04));
-            border-left: 4px solid #2E7D32;
-            color: #1b5e20;
-        }
-        h2 {
-            font-size: 19px;
-            background: linear-gradient(135deg, rgba(21, 101, 192, 0.10), rgba(21, 101, 192, 0.04));
+            padding: 6px 0 6px 14px;
             border-left: 4px solid #1565C0;
             color: #0d47a1;
         }
-        h3 {
-            font-size: 17px;
-            background: linear-gradient(135deg, rgba(230, 81, 0, 0.08), rgba(230, 81, 0, 0.03));
-            border-left: 4px solid #E65100;
-            color: #bf360c;
-        }
-        h4 {
-            font-size: 15px;
-            background: linear-gradient(135deg, rgba(106, 27, 154, 0.08), rgba(106, 27, 154, 0.03));
-            border-left: 4px solid #6A1B9A;
-            color: #4a148c;
-        }
-        h5 { font-size: 14px; padding: 8px 16px; }
-        h6 { font-size: 13px; padding: 6px 12px; }
+        h1 { font-size: 22px; border-left-color: #2E7D32; color: #1b5e20; }
+        h2 { font-size: 19px; border-left-color: #1565C0; color: #0d47a1; }
+        h3 { font-size: 17px; border-left-color: #E65100; color: #bf360c; }
+        h4 { font-size: 15px; border-left-color: #6A1B9A; color: #4a148c; }
+        h5 { font-size: 14px; padding: 4px 0 4px 12px; }
+        h6 { font-size: 13px; padding: 4px 0 4px 12px; }
 
-        p {
-            margin: 12px 0;
-            text-align: justify;
-        }
+        p { margin: 12px 0; }
 
-        strong, b {
-            color: #b45309;
-            font-weight: 700;
-            background: linear-gradient(135deg, rgba(180, 83, 9, 0.10), rgba(180, 83, 9, 0.04));
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        em, i {
-            color: #2E7D32;
-            font-style: italic;
-            background: linear-gradient(135deg, rgba(46, 125, 50, 0.08), rgba(46, 125, 50, 0.03));
-            padding: 1px 4px;
-            border-radius: 3px;
-        }
+        strong, b { color: #b45309; font-weight: 700; }
+        em, i { color: #2E7D32; font-style: italic; }
 
         .highlight {
-            background: #f5f5f5;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 6px solid #1565C0;
-            border: 1px solid #e0e0e0;
-            overflow-x: auto;
-            position: relative;
+            padding: 12px;
+            margin: 12px 0;
+            border-left: 4px solid #1565C0;
         }
-
         .highlight pre {
             margin: 0;
             font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
@@ -294,341 +249,93 @@ class EnhancedMarkdownRenderer:
             line-height: 1.6;
             color: #263238;
         }
-
         code {
-            background: rgba(211, 47, 47, 0.08);
-            padding: 3px 8px;
-            border-radius: 6px;
+            padding: 1px 4px;
             font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
             font-size: 13px;
             color: #c62828;
-            border: 1px solid rgba(211, 47, 47, 0.15);
-            font-weight: 500;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-            background: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
+            margin: 12px 0;
             border: 1px solid #e0e0e0;
         }
-
         th, td {
-            padding: 16px 20px;
+            padding: 10px 14px;
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
         }
-
         th {
-            background: linear-gradient(135deg, rgba(21, 101, 192, 0.12), rgba(21, 101, 192, 0.06));
             font-weight: 700;
             color: #0d47a1;
             font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid rgba(21, 101, 192, 0.25);
-        }
-
-        tr:hover {
-            background: rgba(21, 101, 192, 0.04);
-        }
-
-        tr:nth-child(even) {
-            background: rgba(0, 0, 0, 0.02);
+            border-bottom: 2px solid rgba(21, 101, 192, 0.2);
         }
 
         blockquote {
-            margin: 20px 0;
-            padding: 20px 24px;
-            background: linear-gradient(135deg, rgba(106, 27, 154, 0.06), rgba(106, 27, 154, 0.02));
-            border-left: 6px solid #7B1FA2;
-            border-radius: 0 12px 12px 0;
-            position: relative;
+            margin: 12px 0;
+            padding: 8px 16px;
+            border-left: 4px solid #7B1FA2;
             font-style: italic;
         }
+        blockquote p { margin: 0; color: #4a148c; }
 
-        blockquote p {
-            margin: 0;
-            color: #4a148c;
-            font-weight: 500;
-        }
+        ul, ol { margin: 12px 0; padding-left: 28px; }
+        li { margin: 6px 0; padding-left: 4px; }
 
-        ul, ol {
-            margin: 16px 0;
-            padding-left: 28px;
-        }
+        a { color: #1565C0; text-decoration: underline; }
 
-        li {
-            margin: 8px 0;
-            padding-left: 8px;
-            position: relative;
-        }
+        .admonition { margin: 12px 0; padding: 12px; }
+        .admonition.note { border-left: 4px solid #1565C0; }
+        .admonition.warning { border-left: 4px solid #E65100; }
+        .admonition.danger { border-left: 4px solid #C62828; }
+        .admonition-title { font-weight: 700; margin-bottom: 8px; font-size: 15px; }
 
-        ul li::before {
-            content: "▸";
-            color: #1565C0;
-            font-weight: bold;
-            position: absolute;
-            left: -16px;
-            font-size: 16px;
-        }
-
-        a {
-            color: #1565C0;
-            text-decoration: none;
-            border-bottom: 2px solid rgba(21, 101, 192, 0.3);
-            padding: 2px 4px;
-            border-radius: 4px;
-            background: linear-gradient(135deg, rgba(21, 101, 192, 0.06), rgba(21, 101, 192, 0.02));
-        }
-
-        a:hover {
-            color: #0d47a1;
-            border-bottom-color: #0d47a1;
-            background: linear-gradient(135deg, rgba(21, 101, 192, 0.12), rgba(21, 101, 192, 0.06));
-        }
-
-        .admonition {
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 12px;
-            position: relative;
-            border-top: 3px solid;
-        }
-
-        .admonition.note {
-            background: rgba(21, 101, 192, 0.06);
-            border-left: 6px solid #1565C0;
-            border-top-color: #1565C0;
-        }
-
-        .admonition.warning {
-            background: rgba(230, 81, 0, 0.06);
-            border-left: 6px solid #E65100;
-            border-top-color: #E65100;
-        }
-
-        .admonition.danger {
-            background: rgba(198, 40, 40, 0.06);
-            border-left: 6px solid #C62828;
-            border-top-color: #C62828;
-        }
-
-        .admonition-title {
-            font-weight: 700;
-            margin-bottom: 12px;
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        hr {
-            border: none;
-            height: 2px;
-            background: linear-gradient(to right, transparent, rgba(21, 101, 192, 0.3), transparent);
-            margin: 32px 0;
-            border-radius: 1px;
-        }
-
-        .footnote {
-            font-size: 12px;
-            color: rgba(0, 0, 0, 0.55);
-            background: rgba(0, 0, 0, 0.03);
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 16px;
-        }
-
-        .task-list-item {
-            list-style: none;
-            position: relative;
-            padding-left: 32px;
-        }
-
-        .task-list-item input[type="checkbox"] {
-            position: absolute;
-            left: 0;
-            top: 2px;
-            width: 16px;
-            height: 16px;
-            accent-color: #2E7D32;
-        }
-
-        .highlight-box {
-            background: linear-gradient(135deg, rgba(180, 83, 9, 0.08), rgba(180, 83, 9, 0.03));
-            border: 2px solid rgba(180, 83, 9, 0.20);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-        }
+        hr { border: none; height: 1px; background-color: rgba(21, 101, 192, 0.2); margin: 24px 0; }
+        .footnote { font-size: 12px; color: rgba(0, 0, 0, 0.5); padding: 6px 0; margin-top: 8px; }
+        .highlight-box { border-left: 4px solid #E65100; padding: 12px; margin: 12px 0; }
         """
 
     def _get_dark_css(self) -> str:
-        """深色模式 CSS（原有样式）"""
+        """深色模式 CSS — QTextBrowser 兼容版"""
         return """
         body {
             font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'SimHei', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
             background: transparent;
-            color: #ffffff;
+            color: #e0e8f0;
             line-height: 1.6;
             margin: 0;
             padding: 16px;
             font-size: 14px;
-            font-variant-emoji: normal;
-            text-rendering: optimizeLegibility;
-            -webkit-font-feature-settings: "liga", "kern";
-            font-feature-settings: "liga", "kern";
         }
-        
+
         h1, h2, h3, h4, h5, h6 {
             color: #64B5F6;
-            margin-top: 24px;
-            margin-bottom: 16px;
+            margin-top: 20px;
+            margin-bottom: 12px;
             font-weight: 700;
-            position: relative;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, rgba(100, 181, 246, 0.15), rgba(33, 150, 243, 0.08));
-            border-radius: 8px;
+            padding: 6px 0 6px 14px;
             border-left: 4px solid #64B5F6;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 8px rgba(100, 181, 246, 0.2);
         }
-        
-        h1 { 
-            font-size: 22px; 
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1));
-            border-left: 4px solid #4CAF50;
-            color: #81C784;
-            box-shadow: 0 3px 12px rgba(76, 175, 80, 0.3);
-        }
-        h2 { 
-            font-size: 19px; 
-            background: linear-gradient(135deg, rgba(33, 150, 243, 0.18), rgba(33, 150, 243, 0.08));
-            border-left: 4px solid #2196F3;
-            color: #64B5F6;
-        }
-        h3 { 
-            font-size: 17px; 
-            background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 152, 0, 0.08));
-            border-left: 4px solid #FF9800;
-            color: #FFB74D;
-        }
-        h4 { 
-            font-size: 15px; 
-            background: linear-gradient(135deg, rgba(156, 39, 176, 0.15), rgba(156, 39, 176, 0.08));
-            border-left: 4px solid #9C27B0;
-            color: #BA68C8;
-        }
-        h5 { font-size: 14px; padding: 8px 16px; }
-        h6 { font-size: 13px; padding: 6px 12px; }
-        
-        p:has-text(🎯), p:has-text(⚠️), p:has-text(🚨), p:has-text(💡), p:has-text(✅), p:has-text(❌) {
-            background: linear-gradient(135deg, rgba(255, 193, 7, 0.15), rgba(255, 193, 7, 0.05));
-            border: 1px solid rgba(255, 193, 7, 0.3);
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin: 16px 0;
-            position: relative;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 12px rgba(255, 193, 7, 0.2);
-        }
-        
-        p {
-            margin: 12px 0;
-            text-align: justify;
-        }
-        
-        strong, b {
-            color: #FFD54F;
-            font-weight: 700;
-            background: linear-gradient(135deg, rgba(255, 213, 79, 0.2), rgba(255, 213, 79, 0.1));
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-shadow: 0 0 8px rgba(255, 213, 79, 0.3);
-        }
-        
-        em, i {
-            color: #81C784;
-            font-style: italic;
-            background: linear-gradient(135deg, rgba(129, 199, 132, 0.15), rgba(129, 199, 132, 0.05));
-            padding: 1px 4px;
-            border-radius: 3px;
-        }
-        
-        p:contains('🎯') {
-            background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1)) !important;
-            border-left: 4px solid #2196F3 !important;
-            border-radius: 0 8px 8px 0 !important;
-            padding: 16px 20px !important;
-            font-weight: 500;
-            box-shadow: 0 4px 16px rgba(33, 150, 243, 0.25) !important;
-        }
-        
-        p:contains('⚠️'), p:contains('🚨') {
-            background: linear-gradient(135deg, rgba(255, 152, 0, 0.2), rgba(255, 152, 0, 0.1)) !important;
-            border-left: 4px solid #FF9800 !important;
-            border-radius: 0 8px 8px 0 !important;
-            padding: 16px 20px !important;
-            color: #FFE0B2;
-            box-shadow: 0 4px 16px rgba(255, 152, 0, 0.25) !important;
-        }
-        
-        p:contains('✅') {
-            background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(76, 175, 80, 0.1)) !important;
-            border-left: 4px solid #4CAF50 !important;
-            border-radius: 0 8px 8px 0 !important;
-            padding: 16px 20px !important;
-            color: #C8E6C9;
-            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.25) !important;
-        }
-        
-        p:contains('❌') {
-            background: linear-gradient(135deg, rgba(244, 67, 54, 0.2), rgba(244, 67, 54, 0.1)) !important;
-            border-left: 4px solid #F44336 !important;
-            border-radius: 0 8px 8px 0 !important;
-            padding: 16px 20px !important;
-            color: #FFCDD2;
-            box-shadow: 0 4px 16px rgba(244, 67, 54, 0.25) !important;
-        }
-        
-        p:contains('💡') {
-            background: linear-gradient(135deg, rgba(255, 235, 59, 0.2), rgba(255, 235, 59, 0.1)) !important;
-            border-left: 4px solid #FFEB3B !important;
-            border-radius: 0 8px 8px 0 !important;
-            padding: 16px 20px !important;
-            color: #FFF9C4;
-            box-shadow: 0 4px 16px rgba(255, 235, 59, 0.25) !important;
-        }
-        
+        h1 { font-size: 22px; border-left-color: #4CAF50; color: #81C784; }
+        h2 { font-size: 19px; border-left-color: #2196F3; color: #64B5F6; }
+        h3 { font-size: 17px; border-left-color: #FF9800; color: #FFB74D; }
+        h4 { font-size: 15px; border-left-color: #9C27B0; color: #BA68C8; }
+        h5 { font-size: 14px; padding: 4px 0 4px 12px; }
+        h6 { font-size: 13px; padding: 4px 0 4px 12px; }
+
+        p { margin: 12px 0; }
+
+        strong, b { color: #FFD54F; font-weight: 700; }
+        em, i { color: #81C784; font-style: italic; }
+
         .highlight {
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            border-left: 6px solid #64B5F6;
-            border-top: 2px solid rgba(100, 181, 246, 0.3);
-            backdrop-filter: blur(15px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(100, 181, 246, 0.2);
-            overflow-x: auto;
-            position: relative;
+            padding: 12px;
+            margin: 12px 0;
+            border-left: 4px solid #64B5F6;
         }
-        
-        .highlight::before {
-            content: "💻 代码";
-            position: absolute;
-            top: -8px;
-            left: 16px;
-            background: linear-gradient(135deg, #64B5F6, #2196F3);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        
         .highlight pre {
             margin: 0;
             font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
@@ -636,206 +343,53 @@ class EnhancedMarkdownRenderer:
             line-height: 1.6;
             color: #f8f8f2;
         }
-        
         code {
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(255, 107, 107, 0.1));
-            padding: 3px 8px;
-            border-radius: 6px;
+            padding: 1px 4px;
             font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
             font-size: 13px;
             color: #FF8A80;
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(255, 107, 107, 0.15);
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
-            border-radius: 12px;
-            overflow: hidden;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(100, 181, 246, 0.2);
+            margin: 12px 0;
+            border: 1px solid rgba(100, 181, 246, 0.25);
         }
-        
         th, td {
-            padding: 16px 20px;
+            padding: 10px 14px;
             text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
-        
         th {
-            background: linear-gradient(135deg, rgba(100, 181, 246, 0.3), rgba(33, 150, 243, 0.2));
             font-weight: 700;
             color: #E3F2FD;
             font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid rgba(100, 181, 246, 0.4);
+            border-bottom: 2px solid rgba(100, 181, 246, 0.35);
         }
-        
-        tr:hover {
-            background: rgba(100, 181, 246, 0.1);
-            transition: background 0.3s ease;
-        }
-        
-        tr:nth-child(even) {
-            background: rgba(255, 255, 255, 0.02);
-        }
-        
+
         blockquote {
-            margin: 20px 0;
-            padding: 20px 24px;
-            background: linear-gradient(135deg, rgba(156, 39, 176, 0.15), rgba(156, 39, 176, 0.08));
-            border-left: 6px solid #BA68C8;
-            border-radius: 0 12px 12px 0;
-            backdrop-filter: blur(15px);
-            position: relative;
+            margin: 12px 0;
+            padding: 8px 16px;
+            border-left: 4px solid #BA68C8;
             font-style: italic;
-            box-shadow: 0 6px 20px rgba(156, 39, 176, 0.2);
-            border-top: 2px solid rgba(186, 104, 200, 0.3);
         }
-        
-        blockquote::before {
-            content: "💬 引用";
-            position: absolute;
-            top: -10px;
-            left: 20px;
-            background: linear-gradient(135deg, #BA68C8, #9C27B0);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            font-style: normal;
-        }
-        
-        blockquote p {
-            margin: 0;
-            color: #F3E5F5;
-            font-weight: 500;
-        }
-        
-        ul, ol {
-            margin: 16px 0;
-            padding-left: 28px;
-        }
-        
-        li {
-            margin: 8px 0;
-            padding-left: 8px;
-            position: relative;
-        }
-        
-        ul li::before {
-            content: "▸";
-            color: #64B5F6;
-            font-weight: bold;
-            position: absolute;
-            left: -16px;
-            font-size: 16px;
-        }
-        
-        a {
-            color: #81C784;
-            text-decoration: none;
-            border-bottom: 2px solid rgba(129, 199, 132, 0.4);
-            transition: all 0.3s ease;
-            padding: 2px 4px;
-            border-radius: 4px;
-            background: linear-gradient(135deg, rgba(129, 199, 132, 0.1), rgba(129, 199, 132, 0.05));
-        }
-        
-        a:hover {
-            color: #A5D6A7;
-            border-bottom-color: #A5D6A7;
-            background: linear-gradient(135deg, rgba(165, 214, 167, 0.2), rgba(165, 214, 167, 0.1));
-            box-shadow: 0 2px 8px rgba(129, 199, 132, 0.3);
-        }
-        
-        .admonition {
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 12px;
-            backdrop-filter: blur(15px);
-            position: relative;
-            border-top: 3px solid;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .admonition.note {
-            background: linear-gradient(135deg, rgba(33, 150, 243, 0.15), rgba(33, 150, 243, 0.08));
-            border-left: 6px solid #2196F3;
-            border-top-color: #64B5F6;
-            box-shadow: 0 6px 20px rgba(33, 150, 243, 0.25);
-        }
-        
-        .admonition.warning {
-            background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 152, 0, 0.08));
-            border-left: 6px solid #FF9800;
-            border-top-color: #FFB74D;
-            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.25);
-        }
-        
-        .admonition.danger {
-            background: linear-gradient(135deg, rgba(244, 67, 54, 0.15), rgba(244, 67, 54, 0.08));
-            border-left: 6px solid #F44336;
-            border-top-color: #EF5350;
-            box-shadow: 0 6px 20px rgba(244, 67, 54, 0.25);
-        }
-        
-        .admonition-title {
-            font-weight: 700;
-            margin-bottom: 12px;
-            font-size: 15px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        hr {
-            border: none;
-            height: 2px;
-            background: linear-gradient(to right, transparent, rgba(100, 181, 246, 0.6), transparent);
-            margin: 32px 0;
-            border-radius: 1px;
-        }
-        
-        .footnote {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.7);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 16px;
-        }
-        
-        .task-list-item {
-            list-style: none;
-            position: relative;
-            padding-left: 32px;
-        }
-        
-        .task-list-item input[type="checkbox"] {
-            position: absolute;
-            left: 0;
-            top: 2px;
-            width: 16px;
-            height: 16px;
-            accent-color: #4CAF50;
-        }
-        
-        .highlight-box {
-            background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 193, 7, 0.1));
-            border: 2px solid rgba(255, 193, 7, 0.4);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);
-        }
+        blockquote p { margin: 0; color: #F3E5F5; }
+
+        ul, ol { margin: 12px 0; padding-left: 28px; }
+        li { margin: 6px 0; padding-left: 4px; }
+
+        a { color: #81C784; text-decoration: underline; }
+
+        .admonition { margin: 12px 0; padding: 12px; }
+        .admonition.note { border-left: 4px solid #2196F3; }
+        .admonition.warning { border-left: 4px solid #FF9800; }
+        .admonition.danger { border-left: 4px solid #F44336; }
+        .admonition-title { font-weight: 700; margin-bottom: 8px; font-size: 15px; }
+
+        hr { border: none; height: 1px; background-color: rgba(100, 181, 246, 0.3); margin: 24px 0; }
+        .footnote { font-size: 12px; color: rgba(255, 255, 255, 0.6); padding: 6px 0; margin-top: 8px; }
+        .highlight-box { border-left: 4px solid #FFC107; padding: 12px; margin: 12px 0; }
         """
 
     def _clean_garbled_text(self, text: str) -> str:
