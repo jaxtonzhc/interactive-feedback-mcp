@@ -70,7 +70,7 @@ pip install uv
 
 #### 2. 克隆项目
 ```bash
-git clone https://github.com/your-username/interactive-feedback-mcp.git
+git clone https://github.com/jaxtonzhc/interactive-feedback-mcp.git
 cd interactive-feedback-mcp
 ```
 
@@ -323,7 +323,6 @@ python manage_logs.py config --level DEBUG
 interactive-feedback-mcp/
 ├── server.py                          # MCP服务器入口
 ├── enhanced_feedback_ui.py            # UI主程序
-├── rules.md                          # 开发规范文档
 ├── pyproject.toml                    # 项目配置
 ├── ui/                               # UI组件模块
 │   ├── components/                   # 核心组件
@@ -424,12 +423,10 @@ print(monitor.get_current_metrics())
 ### 开发流程
 1. Fork 项目
 2. 创建功能分支：`git checkout -b feature/new-feature`
-3. 遵循 [开发规范](rules.md)
-4. 编写测试用例
-5. 提交PR
+3. 编写测试用例
+4. 提交PR
 
 ### 代码规范
-- 遵循 [rules.md](rules.md) 中的开发规则
 - 使用Black进行代码格式化
 - 保持测试覆盖率 > 80%
 - 编写清晰的提交消息
@@ -444,11 +441,12 @@ print(monitor.get_current_metrics())
 - [PySide6](https://pypi.org/project/PySide6/) - UI框架
 - [Cursor](https://cursor.sh/) - AI开发工具
 - [Claude](https://claude.ai/) - AI助手
+- [interactive-mcp](https://github.com/ttommyth/interactive-mcp) - 项目灵感来源
 
 ---
 
 **📞 联系方式**
-- 问题反馈：[GitHub Issues](https://github.com/your-username/interactive-feedback-mcp/issues)
-- 功能建议：[GitHub Discussions](https://github.com/your-username/interactive-feedback-mcp/discussions)
+- 问题反馈：[GitHub Issues](https://github.com/jaxtonzhc/interactive-feedback-mcp/issues)
+- 功能建议：[GitHub Discussions](https://github.com/jaxtonzhc/interactive-feedback-mcp/discussions)
 
 **⭐ 如果这个项目对您有帮助，请给我们一个Star！**

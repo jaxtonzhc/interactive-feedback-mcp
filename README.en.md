@@ -1,6 +1,6 @@
 # 🗣️ Interactive Feedback MCP
 
-[中文文档](./README.zh-CN.md)
+[中文文档](./README.md)
 
 Simple [MCP Server](https://modelcontextprotocol.io/) to enable a human-in-the-loop workflow in AI-assisted development tools like [Cursor](https://www.cursor.com), [Cline](https://cline.bot) and [Windsurf](https://windsurf.com). This server allows you to easily provide feedback directly to the AI agent, bridging the gap between AI and you.
 
@@ -8,13 +8,11 @@ Simple [MCP Server](https://modelcontextprotocol.io/) to enable a human-in-the-l
 
 ## New Features
 
-- Beautiful UI
+- Beautiful UI with three-column layout and glassmorphism effects
 - Support pasting images
 - Support markdown format
-
-## 🖼️ Example
-
-![Interactive Feedback Example](./demo.png)
+- Predefined options for quick selection
+- Performance monitoring and optimization
 
 ## 💡 Why Use This?
 
@@ -47,7 +45,7 @@ This server exposes the following tool via the Model Context Protocol (MCP):
       - macOS: `brew install uv`
 2.  **Get the code:**
     - Clone this repository:
-      `git clone https://github.com/kele527/interactive-feedback-mcp.git`
+      `git clone https://github.com/jaxtonzhc/interactive-feedback-mcp.git`
     - Or download the source code.
 
 ## ⚙️ Configuration
@@ -78,8 +76,6 @@ This will ensure your AI assistant always uses this MCP server to request user f
 
 ## 🙏 Acknowledgements
 
-Developed by Fábio Ferreira ([@fabiomlferreira](https://x.com/fabiomlferreira)).
-
-Enhanced by Pau Oliva ([@pof](https://x.com/pof)) with ideas from Tommy Tong's [interactive-mcp](https://github.com/ttommyth/interactive-mcp).
-
-UI Optimized by kele527 ([@kele527](https://x.com/jasonya76775253))
+- [FastMCP](https://github.com/jlowin/fastmcp) - MCP framework
+- [PySide6](https://pypi.org/project/PySide6/) - UI framework
+- [interactive-mcp](https://github.com/ttommyth/interactive-mcp) - Project inspiration
