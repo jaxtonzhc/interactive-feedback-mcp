@@ -26,25 +26,33 @@ from ui.utils.logging_system import init_logging, get_logger, log_project_contex
 if sys.platform.startswith('win'):
     # Windows系统特殊处理
     try:
-        # 检查是否在Windows系统上
-        if sys.platform.startswith('win'):
-            # 尝试设置stdout和stderr的UTF-8编码
-            if hasattr(sys.stdout, 'detach'):
-                sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())  # type: ignore
-            if hasattr(sys.stderr, 'detach'):
-                sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())  # type: ignore
+        # 使用 reconfigure 代替 detach，避免破坏 pytest 等工具的 capture 机制
+        if hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8')
+        elif hasattr(sys.stdout, 'detach'):
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())  # type: ignore
+        if hasattr(sys.stderr, 'reconfigure'):
+            sys.stderr.reconfigure(encoding='utf-8')
+        elif hasattr(sys.stderr, 'detach'):
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())  # type: ignore
     except (AttributeError, OSError, TypeError):
-        # 如果detach()不可用或失败，跳过编码设置
+        # 如果reconfigure/detach不可用或失败，跳过编码设置
         pass
 
-# 设置locale
-try:
-    locale.setlocale(locale.LC_ALL, 'zh_CN.UTF-8')
-except:
+# 设置locale - 跨平台兼容
+if sys.platform.startswith('win'):
+    # Windows locale 格式
+    _locale_candidates = ['zh_CN.UTF-8', 'Chinese (Simplified)_China.UTF-8', 'en_US.UTF-8', 'English_United States.UTF-8']
+else:
+    # macOS / Linux locale 格式
+    _locale_candidates = ['zh_CN.UTF-8', 'en_US.UTF-8']
+
+for _loc in _locale_candidates:
     try:
-        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-    except:
-        pass
+        locale.setlocale(locale.LC_ALL, _loc)
+        break
+    except (locale.Error, ValueError):
+        continue
 
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

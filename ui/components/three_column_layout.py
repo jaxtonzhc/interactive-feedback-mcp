@@ -569,11 +569,28 @@ class ThreeColumnFeedbackUI(QMainWindow):
         except:
             project_type = "检测失败"
         
-        # 计算项目大小（在正确的项目路径下）
+        # 计算项目大小（跨平台兼容）
         try:
-            import subprocess
-            result = subprocess.run(['du', '-sh', project_path], capture_output=True, text=True, timeout=5)
-            project_size = result.stdout.split()[0] if result.returncode == 0 else "未知"
+            total_size = 0
+            for dirpath, dirnames, filenames in os.walk(project_path):
+                # 跳过 .git 目录
+                if '.git' in dirnames:
+                    dirnames.remove('.git')
+                for f in filenames:
+                    fp = os.path.join(dirpath, f)
+                    try:
+                        total_size += os.path.getsize(fp)
+                    except OSError:
+                        pass
+            # 格式化大小
+            if total_size < 1024:
+                project_size = f"{total_size}B"
+            elif total_size < 1024 * 1024:
+                project_size = f"{total_size / 1024:.1f}K"
+            elif total_size < 1024 * 1024 * 1024:
+                project_size = f"{total_size / (1024 * 1024):.1f}M"
+            else:
+                project_size = f"{total_size / (1024 * 1024 * 1024):.1f}G"
         except:
             project_size = "未知"
         
@@ -741,11 +758,22 @@ class ThreeColumnFeedbackUI(QMainWindow):
             top_types = sorted(file_types.items(), key=lambda x: x[1], reverse=True)[:3]
             file_types_str = ", ".join([f"{ext}({count})" for ext, count in top_types])
             
-            # 获取最近修改的文件
+            # 获取最近修改的文件（跨平台兼容）
             try:
-                recent_result = subprocess.run(['find', '.', '-type', 'f', '-mtime', '-1', '!', '-path', './.git/*'], 
-                                             capture_output=True, text=True, timeout=5)
-                recent_files = len(recent_result.stdout.strip().split('\n')) if recent_result.stdout.strip() else 0
+                import time
+                one_day_ago = time.time() - 86400  # 24小时前
+                recent_files = 0
+                for dirpath, dirnames, filenames in os.walk(project_path):
+                    # 跳过 .git 目录
+                    if '.git' in dirnames:
+                        dirnames.remove('.git')
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        try:
+                            if os.path.getmtime(fp) > one_day_ago:
+                                recent_files += 1
+                        except OSError:
+                            pass
             except:
                 recent_files = 0
             
